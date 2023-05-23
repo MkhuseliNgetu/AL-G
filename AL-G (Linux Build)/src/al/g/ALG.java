@@ -4,8 +4,10 @@
  */
 package al.g;
 
+import com.sun.tools.javac.Main;
 import java.awt.Color;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
@@ -27,10 +29,14 @@ import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.UIManager;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -38,30 +44,62 @@ import javax.swing.UIManager;
  */
 public class ALG {
 
-    private static JFrame SplashScreen;
+    
     private static int MaxWidth;
     private static int MaxHeight;
     private static String WindowName;
+    
+    private static GridBagLayout gbl;
+    private static GridBagConstraints gbc;
+      
+    private static JFrame SplashScreen;
     private static String LogoLocation;
+    private static String LoadingLogoLocation;
     private static ImageIcon Logo;
     private static Container SplashScreenContent;
     private static JLabel MainLogo;
     private static JLabel MainLoadingLogo;
-    private static GridBagLayout gbl;
-    private static GridBagConstraints gbc;
     
+    //Home Screen Related
     private static JFrame HomeWindow;
     private static Container HomeScreenContent;
-    
+    private static JButton GetHardDriveReport;
+    private static JButton CheckIfHardDriveNASStatus;
+    //Hard Drive Report Related
     private static JFrame HardDriveReportWindow;
+    private static String[] TableHeaders;
+    private static int[] TableData;
+    private static JTable Report;
+    private static JButton ReturnButton;
+    private static String[] Inputs;
+    private static File GettingDriveOutputs;
+    private static Scanner ReadingDriveOutputs; 
     private static Stack DriveNames;
     private static Container HardDriveReportContent;
     
+    //Hard Drive NAS Status Related
     private static JFrame NASStatus;
     private static Container NASStatusContent;
+    
+    private static JButton AvailableDrive;
+    private static JLabel DrivesNotFound;
+    
+    private static JButton UNRAID;
+    private static JButton TrueNAS;
+    private static JButton ProxMox;
 
     public static void main(String[] args) {
-        // TODO code application logic here
+        try {
+            // TODO code application logic here
+
+            SplashScreen();
+        } catch (InterruptedException ex) {
+            Logger.getLogger(ALG.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }
+    
+    public static JFrame SplashScreen() throws InterruptedException{
         
         WindowName = "AL-G";
         MaxWidth = 500;
@@ -71,16 +109,22 @@ public class ALG {
         SplashScreen.setSize(MaxWidth, MaxHeight);
         SplashScreen.setResizable(false);
         SplashScreen.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        SplashScreen.setLocationRelativeTo(null);
         
-        
-        LogoLocation ="/home/brajo/Pictures/Al-G SpalshScreenImage V8.png";
-                 
-        
+             
         MainLogo = new JLabel();
-        MainLogo.setIcon( new ImageIcon(LogoLocation));
+        //This programming statement was adapted from StackOverflow:
+        //Link: https://stackoverflow.com/questions/55450014/class-path-resource-for-jlabel-imageicon
+        //Author(s): Depak Sharma, Andrew Thompson
+        //Author Profile Link: https://stackoverflow.com/users/11289224/deepak-sharma, https://stackoverflow.com/users/418556/andrew-thompson
+        MainLogo.setIcon( new ImageIcon(ALG.class.getResource("/Resources/Al-G SplashScreenImage V8.png")));
         
         MainLoadingLogo = new JLabel();
-        MainLoadingLogo.setIcon(new ImageIcon("/home/brajo/Downloads/Ellipsis-3.4s-200px(1).gif"));
+        //This programming statement was adapted from StackOverflow:
+        //Link: https://stackoverflow.com/questions/55450014/class-path-resource-for-jlabel-imageicon
+        //Author(s): Depak Sharma, Andrew Thompson
+        //Author Profile Link: https://stackoverflow.com/users/11289224/deepak-sharma, https://stackoverflow.com/users/418556/andrew-thompson
+        MainLoadingLogo.setIcon(new ImageIcon(ALG.class.getResource("/Resources/Loading.gif")));
         
         SplashScreenContent = new Container();
         
@@ -103,7 +147,10 @@ public class ALG {
         SplashScreen.setBackground(Color.WHITE);
         
         try{
-            
+            //This programming statement was adapted from CodeSpeedy:
+            //Link: https://www.codespeedy.com/how-to-change-the-color-of-title-bar-in-jframe-in-java/
+            //Author: Subhojeet Ghosh
+            //Author Profile Link: https://www.codespeedy.com/author/subhojeet_ghosh/
             UIManager.put("JFrame.activeTitleBackground", Color.WHITE);
             
         }catch(Exception CannotSetColour){
@@ -113,17 +160,26 @@ public class ALG {
         }
         
         SplashScreen.setVisible(true);
-        
-        MainLoadingLogo.addMouseListener(new MouseAdapter() {
+       
+       /* MainLoadingLogo.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                   SplashScreen.setVisible(false);
-                   SplashScreen.dispose();
-                   MainWindow();
+                    
+                    
+                  
                 }
 
-            });
+            });*/
         
+        if(System.currentTimeMillis() > 10000){
+            
+         SplashScreen.setVisible(false);
+         SplashScreen.dispose();
+         MainWindow();
+        }
+         
+         
+        return SplashScreen;
     }
     
     public static JFrame MainWindow(){
@@ -137,9 +193,23 @@ public class ALG {
         HomeWindow.setSize(MaxWidth, MaxHeight);
         HomeWindow.setResizable(false);
         HomeWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        HomeWindow.setLocationRelativeTo(null);
         
-        JButton GetHardDriveReport = new JButton("Get Hard Drive Report");
-        JButton CheckIfHardDriveNASStatus = new JButton("Get Drive NAS Status");
+        //This programming statement was adapted from StackOverflow:
+        //Link: https://stackoverflow.com/questions/55450014/class-path-resource-for-jlabel-imageicon
+        //Author(s): Depak Sharma, Andrew Thompson
+        //Author Profile Link: https://stackoverflow.com/users/11289224/deepak-sharma, https://stackoverflow.com/users/418556/andrew-thompson
+        GetHardDriveReport = new JButton(new ImageIcon(ALG.class.getResource("/Resources/Hard Drive Report ImageButton V2.png")));
+        GetHardDriveReport.setBackground(Color.WHITE);
+        GetHardDriveReport.setOpaque(true);
+        
+        //This programming statement was adapted from StackOverflow:
+        //Link: https://stackoverflow.com/questions/55450014/class-path-resource-for-jlabel-imageicon
+        //Author(s): Depak Sharma, Andrew Thompson
+        //Author Profile Link: https://stackoverflow.com/users/11289224/deepak-sharma, https://stackoverflow.com/users/418556/andrew-thompson
+        CheckIfHardDriveNASStatus = new JButton(new ImageIcon(ALG.class.getResource("/Resources/Hard Drive Status ImageButton V2.png")));
+        CheckIfHardDriveNASStatus.setBackground(Color.WHITE);
+        CheckIfHardDriveNASStatus.setOpaque(true);
         
         HomeScreenContent = new Container();
         
@@ -205,12 +275,13 @@ public class ALG {
         HardDriveReportWindow.setSize(MaxWidth, MaxHeight);
         HardDriveReportWindow.setResizable(false);
         HardDriveReportWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        HardDriveReportWindow.setLocationRelativeTo(null);
         
         //String GetSMARTFromDrive = "/usr/bin/gnome-terminal sudo smartctl -a /dev/sde > SnakeEater.txt";
         //Runtime ExecuteSearch = Runtime.getRuntime();
         
         
-        String[] TableHeaders = new String[]{"Raw_Read_Error_Rate",
+       TableHeaders = new String[]{"Raw_Read_Error_Rate",
             "Spin_Up_Time","Start_Stop_Count","Reallocated_Sector_Ct",
             "Seek_Error_Rate", "Power_On_Hours","Spin_Retry_Count",
             "Power_Cycle_Count", "End-to-End_Error", "Reported_Uncorrect",
@@ -220,13 +291,26 @@ public class ALG {
             "UDMA_CRC_Error_Count", "Head_Flying_Hours", "Total_LBAs_Written",
             "Total_LBAs_Read","Free_Fall_Sensor"};
         //Demo Data
-        int[] TableData = new int[]{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+        TableData = new int[]{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+        
+        DefaultTableModel ReportTemplate = new DefaultTableModel();
+        int NumberOfHeadersAvailable = 1;
+        for(String Header:TableHeaders){
+            
+            NumberOfHeadersAvailable++;
+            ReportTemplate.addColumn(Header);
+           
+        }
+        
+        Report = new JTable(ReportTemplate);
+        Report.setOpaque(true);
+        Report.setBackground(Color.WHITE);
+        //Report.getColumn(1).setPreferredWidth(5);
         
         
-        JTable Report = new JTable();
-        
-        JButton ReturnButton = new JButton("Return to Home");
-
+        ReturnButton = new JButton("Return to Home");
+        ReturnButton.setBackground(Color.WHITE);
+        ReturnButton.setOpaque(true);
         
         HardDriveReportContent = new Container();
         
@@ -244,7 +328,7 @@ public class ALG {
         
         try {
             //Stores a command
-            String[] Inputs = new String[] {"/bin/bash", "-c","lsblk -o NAME,MOUNTPOINTS > DriveOutputs.txt"};
+            Inputs = new String[] {"/bin/bash", "-c","lsblk -o NAME,MOUNTPOINTS > DriveOutputs.txt"};
             //Excetures a command
             //This programming statement was adapted from StackOverflow:
             //Link: https://stackoverflow.com/questions/15356405/how-to-run-a-command-at-terminal-from-java-program
@@ -256,12 +340,12 @@ public class ALG {
             //Link: https://stackoverflow.com/questions/5711084/java-runtime-getruntime-getting-output-from-executing-a-command-line-program
             //Author: Saptarsi Halder
             //Author Profile Link: https://stackoverflow.com/users/14101724/saptarsi-halder
-            //var Outputs = GetDriveAttributes.getInputStream().transferTo(System.out);
-            //Displaying output (Temporarily).
+            var Outputs = GetDriveAttributes.getInputStream().transferTo(System.out);
+         
             
             
-            File GettingDriveOutputs = new File("DriveOutputs.txt");
-            Scanner ReadingDriveOutputs = new Scanner(GettingDriveOutputs);
+            GettingDriveOutputs = new File("DriveOutputs.txt");
+            ReadingDriveOutputs = new Scanner(GettingDriveOutputs);
             
             DriveNames = new Stack();
             while(ReadingDriveOutputs.hasNextLine()){
@@ -270,10 +354,36 @@ public class ALG {
                 
             }
             
-            gbc.gridx=2;
-            gbc.gridy=1;
-            HardDriveReportContent.add(Report ,gbc);
+            int SimpleCounter = 1;
             
+            for(Object DriveName: DriveNames){
+                
+                
+                if(DriveName.toString().contains("/run/media/")){
+                    
+                 
+                    
+                    AvailableDrive = new JButton(DriveName.toString());
+                    AvailableDrive.setOpaque(true);
+                    AvailableDrive.setBackground(Color.WHITE);
+                    
+                    gbc.gridx=2;
+                    gbc.gridy=SimpleCounter++;
+                    HardDriveReportContent.add( AvailableDrive ,gbc);
+                    
+                    HardDriveReportWindow.setSize(MaxWidth, MaxHeight+50);
+                }else{
+                    //gbc.gridx=2;
+                    //gbc.gridy=SimpleCounter;
+                    //DrivesNotFound = new JLabel("Please connect/decrypt your hard drive(s) to proceed");
+                    //HardDriveReportContent.add( DrivesNotFound,gbc);
+                }
+                
+                
+            }
+            
+            
+   
            
             
         } catch (IOException ex) {
@@ -283,12 +393,103 @@ public class ALG {
         gbc.gridx=2;
         gbc.gridy=2;
         HardDriveReportContent.add(ReturnButton ,gbc);
-            
+              
         HardDriveReportWindow.setContentPane(HardDriveReportContent);
         
         HardDriveReportWindow.setBackground(Color.WHITE);
       
         HardDriveReportWindow.setVisible(true);
+        
+        ReturnButton.addActionListener(new ActionListener(){  
+            public void actionPerformed(ActionEvent e){  
+            
+             HardDriveReportWindow.setVisible(false);
+             HardDriveReportWindow.dispose();
+             
+             MainWindow();
+          
+            
+            }  
+        });  
+            
+        AvailableDrive.addActionListener(new ActionListener(){  
+            public void actionPerformed(ActionEvent e){  
+              
+             AvailableDrive.setVisible(false);
+             
+             gbc.weightx = 1.0;
+             
+             JScrollPane TableView = new JScrollPane(Report);
+             
+             gbc.gridx=2;
+             gbc.gridy=1;
+             HardDriveReportContent.add(TableView,gbc);
+             
+             MaxWidth = 1000;
+             MaxHeight = 750;
+             HardDriveReportWindow.setSize(MaxWidth, MaxHeight);
+             
+            /* JLabel PassCodeQuery = new JLabel("Enter your password to proceed");
+             JTextField PassCodeInput = new JTextField();
+             JButton PassCodeProceed = new JButton("Proceed");
+             
+             gbc.gridx=2;
+             gbc.gridy=1;
+             HardDriveReportContent.add(PassCodeQuery,gbc);
+             
+             gbc.gridx=2;
+             gbc.gridy=2;
+             HardDriveReportContent.add(PassCodeInput,gbc);
+             
+             gbc.gridx=2;
+             gbc.gridy=3;
+             HardDriveReportContent.add(PassCodeProceed,gbc);
+             
+             gbc.gridx=2;
+             gbc.gridy=4;
+             HardDriveReportContent.add(ReturnButton ,gbc);
+             
+            PassCodeProceed.addActionListener(new ActionListener(){  
+            public void actionPerformed(ActionEvent e){  
+                
+            try{
+            //This progranmming statement was adapted from StackOverflow:
+            //Link: https://stackoverflow.com/questions/18708087/how-to-execute-bash-command-with-sudo-privileges-in-java
+            //Author: user5587563 
+            String[] Inputs2 = new String[] {"/bin/bash", "-c","echo Passcode | sudo -S smartctl -a /dev/sda1 > SMART.txt"};
+            //Excetures a command
+            //This programming statement was adapted from StackOverflow:
+            //Link: https://stackoverflow.com/questions/15356405/how-to-run-a-command-at-terminal-from-java-program
+            //Author: Rahul
+            //Author Profile Link: https://stackoverflow.com/users/2024761/rahul
+            Process GetDriveAttributes = new ProcessBuilder(Inputs2).start();
+            //Stores output from Process execution.
+            //This programming statenent was adapted from StackOverflow:
+            //Link: https://stackoverflow.com/questions/5711084/java-runtime-getruntime-getting-output-from-executing-a-command-line-program
+            //Author: Saptarsi Halder
+            //Author Profile Link: https://stackoverflow.com/users/14101724/saptarsi-halder
+            var Outputs = GetDriveAttributes.getInputStream().transferTo(System.out);
+            //DisplayingOutputs
+            System.out.println(Outputs);
+            
+            GettingSMARTDriveOutputs = new File("SMART.txt");
+            ReadingDriveOutputs = new Scanner(GettingSMARTDriveOutputs);
+            
+            
+            
+                 
+            }catch(Exception SMARTAttributesCouldNotBeLoadedSuccessfully){}
+            
+             
+            }});*/
+
+             
+             
+             
+             
+            
+            }  
+        });  
         
         
         return HardDriveReportWindow;
@@ -305,17 +506,23 @@ public class ALG {
         NASStatus.setSize(MaxWidth, MaxHeight);
         NASStatus.setResizable(false);
         NASStatus.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        
-      
-        JTable Report = new JTable();
+        NASStatus.setLocationRelativeTo(null);
+       
         
         //Type of NAS build
-        JButton UNRAID = new JButton("UNRAID");
-        JButton TrueNAS = new JButton("TrueNAS");
-        JButton ProxMox = new JButton("ProxMox");
-       
-        JButton ReturnButton = new JButton("Return to Home");
-
+        UNRAID = new JButton("UNRAID");
+        UNRAID.setBackground(Color.WHITE);
+        UNRAID.setOpaque(true);
+        TrueNAS = new JButton("TrueNAS");
+        TrueNAS.setBackground(Color.WHITE);
+        TrueNAS.setOpaque(true);
+        ProxMox = new JButton("ProxMox");
+        ProxMox.setBackground(Color.WHITE);
+        ProxMox.setOpaque(true);
+        
+        ReturnButton = new JButton("Return to Home");
+        ReturnButton.setBackground(Color.WHITE);
+        ReturnButton.setOpaque(true);
         
         NASStatusContent = new Container();
         
@@ -343,19 +550,19 @@ public class ALG {
         
          //Selection of Connected Hard Drives.
         try{
-             File GettingDriveOutputs = new File("DriveOutputs.txt");
-             Scanner ReadingDriveOutputs = new Scanner(GettingDriveOutputs);
+             File GettingSMARTDriveOutputs = new File("SMART.txt");
+             ReadingDriveOutputs = new Scanner(GettingSMARTDriveOutputs);
             
-             DriveNames = new Stack();
-             while(ReadingDriveOutputs.hasNextLine()){
+            Stack SMARTReport = new Stack();
+            while(ReadingDriveOutputs.hasNextLine()){
                 
-             DriveNames.push(ReadingDriveOutputs.nextLine());
+             SMARTReport.push(ReadingDriveOutputs.nextLine());
 
-             }
+            }
                 
-             System.out.println("Loading Data... Please Wait");
+            System.out.println("Loading Data... Please Wait");
                 
-             if(DriveNames.empty()){
+            if(DriveNames.empty()){
             
            
              NASStatus.setVisible(false);
@@ -388,6 +595,15 @@ public class ALG {
       
         NASStatus.setVisible(true);
         
+        ReturnButton.addActionListener(new ActionListener(){  
+            public void actionPerformed(ActionEvent e){  
+                
+                NASStatus.setVisible(false);
+                NASStatus.dispose();
+                
+                MainWindow();
+            }});
+            
         
         return NASStatus;
         

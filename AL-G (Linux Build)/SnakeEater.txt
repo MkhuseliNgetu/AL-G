@@ -1,1 +1,0 @@
-smartctl -a /dev/sde
