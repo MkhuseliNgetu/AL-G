@@ -81,7 +81,7 @@ public class ALG {
     private static JFrame NASStatus;
     private static Container NASStatusContent;
     
-    private static JButton AvailableDrive;
+    private static JButton[] AvailableDrive;
     private static JLabel DrivesNotFound;
     
     private static JButton UNRAID;
@@ -89,14 +89,26 @@ public class ALG {
     private static JButton ProxMox;
 
     public static void main(String[] args) {
+        
+        StartUpCheck();
+         ChangeUser();
+    }
+    private static void StartUpCheck(){
+        
         try {
-            // TODO code application logic here
+           // TODO code application logic here
 
-            SplashScreen();
+          SplashScreen();
         } catch (InterruptedException ex) {
             Logger.getLogger(ALG.class.getName()).log(Level.SEVERE, null, ex);
         }
+       
+    }
+    private static void SetupLayout(){
+        gbl = new GridBagLayout();
+        gbc = new GridBagConstraints();
         
+        gbc.weighty=0.5;
     }
     
     public static JFrame SplashScreen() throws InterruptedException{
@@ -128,12 +140,9 @@ public class ALG {
         
         SplashScreenContent = new Container();
         
-        gbl = new GridBagLayout();
-        gbc = new GridBagConstraints();
+        SetupLayout();
         SplashScreenContent.setLayout(gbl);
-        
-        gbc.weighty=0.5;
-        
+
         gbc.gridx=1;
         gbc.gridy=1;
         SplashScreenContent.add(MainLogo,gbc);
@@ -213,11 +222,9 @@ public class ALG {
         
         HomeScreenContent = new Container();
         
-        gbl = new GridBagLayout();
-        gbc = new GridBagConstraints();
+        SetupLayout();
         HomeScreenContent.setLayout(gbl);
         
-        gbc.weighty=0.5;
         
         gbc.gridx=0;
         gbc.gridy=0;
@@ -265,6 +272,136 @@ public class ALG {
         return HomeWindow;
     }
     
+    private static void FindDrives(){
+     
+        var GetAvailableDrivesScript = ALG.class.getResource("/Scripts/GetAllAvailableDrives.sh");
+        try {
+            //Stores a command
+            Inputs = new String[] {"/bin/bash", "-c"," bash ./ ",GetAvailableDrivesScript.toString(), "&&", "locate DriveOutputs.txt"};
+            //Excetures a command
+            //This programming statement was adapted from StackOverflow:
+            //Link: https://stackoverflow.com/questions/15356405/how-to-run-a-command-at-terminal-from-java-program
+            //Author: Rahul
+            //Author Profile Link: https://stackoverflow.com/users/2024761/rahul
+            Process GetDriveAttributes = new ProcessBuilder(Inputs).start();
+            //Stores output from Process execution.
+            //This programming statenent was adapted from StackOverflow:
+            //Link: https://stackoverflow.com/questions/5711084/java-runtime-getruntime-getting-output-from-executing-a-command-line-program
+            //Author: Saptarsi Halder
+            //Author Profile Link: https://stackoverflow.com/users/14101724/saptarsi-halder
+            var Outputs = GetDriveAttributes.getInputStream().transferTo(System.out);
+         
+            
+            
+            GettingDriveOutputs = new File("DriveOutputs.txt");
+            ReadingDriveOutputs = new Scanner(GettingDriveOutputs);
+            
+            DriveNames = new Stack();
+            while(ReadingDriveOutputs.hasNextLine()){
+                
+                DriveNames.push(ReadingDriveOutputs.nextLine());
+                
+            }
+            
+            int SimpleCounter = 0;
+            AvailableDrive = new JButton[10];
+            
+            for(Object DriveName: DriveNames){
+    
+                if(DriveName.toString().contains("/run/media/")){
+
+                    SimpleCounter++;
+                    
+                    AvailableDrive[SimpleCounter]= new JButton(DriveName.toString());
+                    AvailableDrive[SimpleCounter].setOpaque(true);
+                    AvailableDrive[SimpleCounter].setBackground(Color.WHITE);
+                    
+                    gbc.gridx=2;
+                    gbc.gridy=SimpleCounter;
+                    
+                    HardDriveReportContent.add( AvailableDrive[SimpleCounter] ,gbc);
+                 
+                    HardDriveReportWindow.setSize(MaxWidth, MaxHeight+50);
+                }
+              
+            }
+            
+        } catch (IOException ex) {
+            Logger.getLogger(ALG.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    private static void GetSMARTData(){
+        
+          var DriveAttributesScript = ALG.class.getResource("/Scripts/GetDriveAttributes.sh");
+          var MoveSMARTDataScript = ALG.class.getResource("/Scripts/MoveSmartData.sh");
+          var MoveCloserScript = ALG.class.getResource("/Scripts/MoveDataCloser.sh");
+          
+            try{
+            //This progranmming statement was adapted from StackOverflow:
+            //Link: https://stackoverflow.com/questions/18708087/how-to-execute-bash-command-with-sudo-privileges-in-java
+            //Author: user5587563 
+            String[] Inputs2 = new String[] {"/bin/bash", "-c","./ ", DriveAttributesScript.toString()," sdd1", "&& ./ ", MoveSMARTDataScript.toString(),"&& ./ ", 
+                                            MoveCloserScript.toString(), "&& locate SMART.txt"};
+            //Excetures a command
+            //This programming statement was adapted from StackOverflow:
+            //Link: https://stackoverflow.com/questions/15356405/how-to-run-a-command-at-terminal-from-java-program
+            //Author: Rahul
+            //Author Profile Link: https://stackoverflow.com/users/2024761/rahul
+            Process GetDriveAttributes = new ProcessBuilder(Inputs2).start();
+            //Stores output from Process execution.
+            //This programming statenent was adapted from StackOverflow:
+            //Link: https://stackoverflow.com/questions/5711084/java-runtime-getruntime-getting-output-from-executing-a-command-line-program
+            //Author: Saptarsi Halder
+            //Author Profile Link: https://stackoverflow.com/users/14101724/saptarsi-halder
+            var Outputs = GetDriveAttributes.getInputStream().transferTo(System.out);
+
+            
+            //GettingDriveOutputs  = new File("SMART.txt");
+            //ReadingDriveOutputs = new Scanner(GettingDriveOutputs );
+            
+            GettingDriveOutputs = new File("DriveOutputs.txt");
+            ReadingDriveOutputs = new Scanner(GettingDriveOutputs);
+            
+            while(ReadingDriveOutputs.hasNextLine()){
+                
+                System.out.println(ReadingDriveOutputs.nextLine());
+            }
+
+                 
+            }catch(Exception SMARTAttributesCouldNotBeLoadedSuccessfully){}
+
+             
+            
+            }  
+        
+    private static void ChangeUser(){
+        
+       String ChangeToALGUser = "echo \"173ff75ecfe6526f7996a38c0ba4f0cd\" | sudo -S smartctl -a /dev/sdd1";
+        try {
+            //Stores a command
+            Inputs = new String[] {"/bin/bash", "-c",ChangeToALGUser," && echo ","${id -nu}"};
+            //Excetures a command
+            //This programming statement was adapted from StackOverflow:
+            //Link: https://stackoverflow.com/questions/15356405/how-to-run-a-command-at-terminal-from-java-program
+            //Author: Rahul
+            //Author Profile Link: https://stackoverflow.com/users/2024761/rahul
+            Process GetDriveAttributes = new ProcessBuilder(Inputs).start();
+            //Stores output from Process execution.
+            //This programming statenent was adapted from StackOverflow:
+            //Link: https://stackoverflow.com/questions/5711084/java-runtime-getruntime-getting-output-from-executing-a-command-line-program
+            //Author: Saptarsi Halder
+            //Author Profile Link: https://stackoverflow.com/users/14101724/saptarsi-halder
+            var Outputs = GetDriveAttributes.getInputStream().transferTo(System.out);
+            
+            System.out.println(Outputs);
+            
+        }catch(Exception CannotChangeToUser){
+            
+            
+        }
+        
+    }
     public static JFrame GetHardDriveReport(){
         
         WindowName = "AL-G: Drive Report";
@@ -314,82 +451,15 @@ public class ALG {
         
         HardDriveReportContent = new Container();
         
-        gbl = new GridBagLayout();
-        gbc = new GridBagConstraints();
+        SetupLayout();
         HardDriveReportContent.setLayout(gbl);
-        
-        gbc.weighty=0.5;
-        
+         
         gbc.gridx=2;
         gbc.gridy=0;
         HardDriveReportContent.add(MainLogo,gbc);
-        
-        
-        
-        try {
-            //Stores a command
-            Inputs = new String[] {"/bin/bash", "-c","lsblk -o NAME,MOUNTPOINTS > DriveOutputs.txt"};
-            //Excetures a command
-            //This programming statement was adapted from StackOverflow:
-            //Link: https://stackoverflow.com/questions/15356405/how-to-run-a-command-at-terminal-from-java-program
-            //Author: Rahul
-            //Author Profile Link: https://stackoverflow.com/users/2024761/rahul
-            Process GetDriveAttributes = new ProcessBuilder(Inputs).start();
-            //Stores output from Process execution.
-            //This programming statenent was adapted from StackOverflow:
-            //Link: https://stackoverflow.com/questions/5711084/java-runtime-getruntime-getting-output-from-executing-a-command-line-program
-            //Author: Saptarsi Halder
-            //Author Profile Link: https://stackoverflow.com/users/14101724/saptarsi-halder
-            var Outputs = GetDriveAttributes.getInputStream().transferTo(System.out);
-         
-            
-            
-            GettingDriveOutputs = new File("DriveOutputs.txt");
-            ReadingDriveOutputs = new Scanner(GettingDriveOutputs);
-            
-            DriveNames = new Stack();
-            while(ReadingDriveOutputs.hasNextLine()){
-                
-                DriveNames.push(ReadingDriveOutputs.nextLine());
-                
-            }
-            
-            int SimpleCounter = 1;
-            
-            for(Object DriveName: DriveNames){
-                
-                
-                if(DriveName.toString().contains("/run/media/")){
-                    
-                 
-                    
-                    AvailableDrive = new JButton(DriveName.toString());
-                    AvailableDrive.setOpaque(true);
-                    AvailableDrive.setBackground(Color.WHITE);
-                    
-                    gbc.gridx=2;
-                    gbc.gridy=SimpleCounter++;
-                    HardDriveReportContent.add( AvailableDrive ,gbc);
-                    
-                    HardDriveReportWindow.setSize(MaxWidth, MaxHeight+50);
-                }else{
-                    //gbc.gridx=2;
-                    //gbc.gridy=SimpleCounter;
-                    //DrivesNotFound = new JLabel("Please connect/decrypt your hard drive(s) to proceed");
-                    //HardDriveReportContent.add( DrivesNotFound,gbc);
-                }
-                
-                
-            }
-            
-            
-   
-           
-            
-        } catch (IOException ex) {
-            Logger.getLogger(ALG.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
+
+        FindDrives();
+
         gbc.gridx=2;
         gbc.gridy=2;
         HardDriveReportContent.add(ReturnButton ,gbc);
@@ -408,93 +478,42 @@ public class ALG {
              
              MainWindow();
           
-            
             }  
         });  
+        
+        for(JButton HardDriveOptions: AvailableDrive){
             
-        AvailableDrive.addActionListener(new ActionListener(){  
-            public void actionPerformed(ActionEvent e){  
-              
-             AvailableDrive.setVisible(false);
-             
-             gbc.weightx = 1.0;
-             
-             JScrollPane TableView = new JScrollPane(Report);
-             
-             gbc.gridx=2;
-             gbc.gridy=1;
-             HardDriveReportContent.add(TableView,gbc);
-             
-             MaxWidth = 1000;
-             MaxHeight = 750;
-             HardDriveReportWindow.setSize(MaxWidth, MaxHeight);
-             
-            /* JLabel PassCodeQuery = new JLabel("Enter your password to proceed");
-             JTextField PassCodeInput = new JTextField();
-             JButton PassCodeProceed = new JButton("Proceed");
-             
-             gbc.gridx=2;
-             gbc.gridy=1;
-             HardDriveReportContent.add(PassCodeQuery,gbc);
-             
-             gbc.gridx=2;
-             gbc.gridy=2;
-             HardDriveReportContent.add(PassCodeInput,gbc);
-             
-             gbc.gridx=2;
-             gbc.gridy=3;
-             HardDriveReportContent.add(PassCodeProceed,gbc);
-             
-             gbc.gridx=2;
-             gbc.gridy=4;
-             HardDriveReportContent.add(ReturnButton ,gbc);
-             
-            PassCodeProceed.addActionListener(new ActionListener(){  
+            HardDriveOptions.addActionListener(new ActionListener(){  
+            @Override
             public void actionPerformed(ActionEvent e){  
                 
-            try{
-            //This progranmming statement was adapted from StackOverflow:
-            //Link: https://stackoverflow.com/questions/18708087/how-to-execute-bash-command-with-sudo-privileges-in-java
-            //Author: user5587563 
-            String[] Inputs2 = new String[] {"/bin/bash", "-c","echo Passcode | sudo -S smartctl -a /dev/sda1 > SMART.txt"};
-            //Excetures a command
-            //This programming statement was adapted from StackOverflow:
-            //Link: https://stackoverflow.com/questions/15356405/how-to-run-a-command-at-terminal-from-java-program
-            //Author: Rahul
-            //Author Profile Link: https://stackoverflow.com/users/2024761/rahul
-            Process GetDriveAttributes = new ProcessBuilder(Inputs2).start();
-            //Stores output from Process execution.
-            //This programming statenent was adapted from StackOverflow:
-            //Link: https://stackoverflow.com/questions/5711084/java-runtime-getruntime-getting-output-from-executing-a-command-line-program
-            //Author: Saptarsi Halder
-            //Author Profile Link: https://stackoverflow.com/users/14101724/saptarsi-halder
-            var Outputs = GetDriveAttributes.getInputStream().transferTo(System.out);
-            //DisplayingOutputs
-            System.out.println(Outputs);
+           
+              
+            HardDriveOptions.setVisible(false);
+             
+            gbc.weightx = 1.0;
             
-            GettingSMARTDriveOutputs = new File("SMART.txt");
-            ReadingDriveOutputs = new Scanner(GettingSMARTDriveOutputs);
-            
-            
-            
-                 
-            }catch(Exception SMARTAttributesCouldNotBeLoadedSuccessfully){}
             
              
-            }});*/
+            
+        } 
+      });
+          
+            JScrollPane TableView = new JScrollPane(Report);
+          
+            GetSMARTData();
+            gbc.gridx=2;
+            gbc.gridy=1;
+            HardDriveReportContent.add(TableView,gbc);
+             
+            MaxWidth = 1000;
+            MaxHeight = 750;
+            HardDriveReportWindow.setSize(MaxWidth, MaxHeight);
+     }
+       
+       return HardDriveReportWindow;
+}
 
-             
-             
-             
-             
-            
-            }  
-        });  
-        
-        
-        return HardDriveReportWindow;
-        
-    }
     
      public static JFrame GetDriveNASStatus(){
         
@@ -573,11 +592,11 @@ public class ALG {
             }else{
              
              
-                 /*for(Object Line: DriveNames){
+                 for(Object Line: DriveNames){
                      
                      NASStatusContent.add(new JButton((String) Line),gbc);
                      break;
-                 }*/
+                 }
             }
                 
             }catch(Exception DrivesCouldNotBeFound){
