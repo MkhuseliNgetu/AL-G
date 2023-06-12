@@ -10,11 +10,8 @@ fi
 
 #Get Hard drives
 GetMyDrives=$(lsblk -o NAME,MOUNTPOINTS > DriveOutputs.txt)
-echo "${GetMyDrives}"
 CopyToDesiredLocation=$(cp -p DriveOutputs.txt ~/NetBeansProjects/AL-G)
-echo "${CopyToDesiredLocation}"
 RemoveDriveOutputsFromCurrentLocation=$(rm DriveOutputs.txt)
-echo "${RemoveDriveOutputsFromCurrentLocation}"
 
 #Checking if the script has ran successfully
 if [[ "${?}" -eq 0 ]]
