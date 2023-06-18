@@ -8,7 +8,7 @@ OS (Operating System): Linux\
 IDE/Coding Platform: Apache Netbeans 18.\
 Storage: 20MB\
 RAM: 4GB\
-Misc. Software: smartctl (Install command : sudo <insert your package manager> install smartmontools)\ 
+Misc. Software: smartctl (Install command : sudo <insert your package manager> install smartmontools)\
 (P.S Remember to update your system before installing smartctl to reduce that chances of this tool not working properly on your system.)\
 A functional keyboard and mouse.\
 
