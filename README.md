@@ -10,7 +10,7 @@ Storage: 20MB\
 RAM: 4GB\
 Misc. Software: smartctl (Install command : sudo <insert your package manager> install smartmontools)\ 
 (P.S Remember to update your system before installing smartctl to reduce that chances of this tool not working properly on your system.)\
-A functional keyboard and mouse.\
+A functional keyboard and mouse.
 
 Recommended\
 OS (Operating System): Linux (Fedora 38)\
@@ -19,7 +19,7 @@ Storage: Greater than 20MB\
 RAM: 4GB\
 Misc. Software: smartctl (Install command : sudo <insert your package manager> install smartmontools)\
 (P.S Remember to update your system before installing smartctl to reduce that chances of this tool not working properly on your system.)\
-A functional keyboard and mouse.\
+A functional keyboard and mouse.
 
 *How To Compile (as of 19/06/2023)*
 1. Decrypt (Unlock) the hard drives you wish to use in the application.
