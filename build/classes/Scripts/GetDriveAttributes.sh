@@ -2,9 +2,9 @@
 
 #Check if the user is running the script with admin rights.
 CurrentUserID=$(id -u)
-if [[ "${CurrentUserID}" -eq 0 ]]
+if [[ "${CurrentUserID}" -ne 0 ]]
 then
-    echo 'This script must not to be run as root (su) to proceed'
+    echo 'This script must be run as root (su) to proceed'
     exit 1
 fi
 

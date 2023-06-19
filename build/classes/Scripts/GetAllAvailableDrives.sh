@@ -10,7 +10,7 @@ fi
 
 #Get Hard drives
 GetMyDrives=$(lsblk -o NAME,MOUNTPOINTS > DriveOutputs.txt)
-CopyToDesiredLocation=$(cp -p DriveOutputs.txt ~/NetBeansProjects/AL-G)
+CopyToDesiredLocation=$(cp -p DriveOutputs.txt ~/Documents/GitHub/AL-G)
 RemoveDriveOutputsFromCurrentLocation=$(rm DriveOutputs.txt)
 
 #Checking if the script has ran successfully

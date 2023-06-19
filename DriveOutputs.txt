@@ -1,0 +1,16 @@
+NAME                                          MOUNTPOINTS
+sda                                           
+└─sda1                                        
+sdb                                           
+├─sdb1                                        /boot/efi
+├─sdb2                                        /boot
+└─sdb3                                        /home
+                                              /
+sdc                                           
+└─sdc1                                        
+sdd                                           
+└─sdd1                                        
+sde                                           
+└─sde1                                        
+  └─luks-24fe4382-f3e8-4dca-a810-449a7435c555 /run/media/brajo/FOXDIE
+zram0                                         [SWAP]
