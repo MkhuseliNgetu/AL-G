@@ -17,12 +17,20 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -106,23 +114,53 @@ public class ALG {
     private static JButton TrueNAS;
     private static JButton ProxMox;
     private static StringBuilder MergeDriveNamesAndMountPoints;
+    
+    private static File Script;
+    private static Set<PosixFilePermission> Permissions;
+    private static Path PathToScript; 
+    private static long ScriptOutputs;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         
         StartUpCheck();
       
     }
     //User Interfaces Startup and Layout
-    private static void StartUpCheck(){
-        
+    private static void StartUpCheck() throws InterruptedException{
+           
+           
+           
         try {
            // TODO code application logic here
+           //Get All Unlocked & Decrypted Drives
+           FindDrives();
+      
 
           SplashScreen();
         } catch (InterruptedException ex) {
             Logger.getLogger(ALG.class.getName()).log(Level.SEVERE, null, ex);
         }
        
+    }
+    
+    private static File MakeScriptsExecutable(URL UnexecutableScript){
+            Script = new File(UnexecutableScript.getPath()); 
+            
+           
+            Permissions = new HashSet<>();
+            Permissions.add(PosixFilePermission.OWNER_READ);
+            Permissions.add(PosixFilePermission.OWNER_WRITE);
+            Permissions.add(PosixFilePermission.OWNER_EXECUTE);
+            
+            
+            PathToScript = Paths.get(Script.getName());
+            
+        try {
+            Files.setPosixFilePermissions(Script.toPath(), Permissions);
+        } catch (IOException ex) {
+            Logger.getLogger(ALG.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return Script;
     }
     private static void SetupLayout(){
         gbl = new GridBagLayout();
@@ -267,7 +305,11 @@ public class ALG {
             HomeWindow.setVisible(false);  
             HomeWindow.dispose();
             
-            GetHardDriveReport();  
+            try {  
+                GetHardDriveReport();
+            } catch (InterruptedException ex) {
+                Logger.getLogger(ALG.class.getName()).log(Level.SEVERE, null, ex);
+            }
         });  
         
          
@@ -284,7 +326,7 @@ public class ALG {
         return HomeWindow;
     }
    
-    public static JFrame GetHardDriveReport(){
+    public static JFrame GetHardDriveReport() throws InterruptedException{
         
         WindowName = "AL-G: Drive Report";
         MaxWidth = 600;
@@ -342,8 +384,17 @@ public class ALG {
         gbc.gridx=2;
         gbc.gridy=0;
         HardDriveReportContent.add(MainLogo,gbc);
-
-        FindDrives();
+        
+       for(JButton Drive: AvailableDrive){
+            SimpleCounter++;
+                
+            gbc.gridx=2;
+            gbc.gridy=SimpleCounter;
+                    
+            HardDriveReportContent.add( Drive ,gbc);
+                
+            HardDriveReportWindow.setSize(MaxWidth, MaxHeight+50);    
+        }
 
         if(AvailableDrive.isEmpty()){
             
@@ -351,8 +402,6 @@ public class ALG {
             gbc.gridy=2;
             HardDriveReportContent.add(ReturnButton ,gbc);
         }
-      
-              
         HardDriveReportWindow.setContentPane(HardDriveReportContent);
         
         HardDriveReportWindow.setBackground(Color.WHITE);
@@ -372,59 +421,33 @@ public class ALG {
               
                     FoundDrive.addActionListener((ActionEvent e) -> {
     
-                    
+                
+                        
                     if(HardDriveReportWindow.getContentPane().getComponent(1) != null){
                      HardDriveReportWindow.getContentPane().getComponent(1).setVisible(false);
                     }
 
-                    
-                    PassCodeInput = new JPasswordField();
-                    PassCodeInput.setColumns(30);
-
-                    PassCodePrompt = new JTextArea("\t"+"Enter your password"+"\n"+"("+
-                    "Your password is required to execute a function"+"\n"+"that requires temporary administrative rights."+")");
-                    PassCodePrompt.setWrapStyleWord(true);
-                    
-                    DarkFont = new Font("Bold",Font.BOLD,14);
-                    PassCodePrompt.setFont(DarkFont);
-                   
-                    Submit = new JButton("Submit");
-                    Submit.setBackground(Color.WHITE);
-                    Submit.setOpaque(true);
-                    
-                
-                    gbc.weighty=0.2;
-                     
-                    gbc.gridx=2;
-                    gbc.gridy=1;
-                    HardDriveReportWindow.getContentPane().add(PassCodePrompt, gbc);
-                    
-                    gbc.gridx=2;
-                    gbc.gridy=2;
-                    HardDriveReportWindow.getContentPane().add(PassCodeInput, gbc);
-                    
-                    gbc.gridx=2;
-                    gbc.gridy=3;
-                    HardDriveReportWindow.getContentPane().add(Submit, gbc);
-                    
-             
-                    Submit.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
                         TableView = new JScrollPane(Report);
                         TableView.setPreferredSize(new Dimension(1100,450));
                         ScrollingBar = new JScrollBar();
                         TableView.add(ScrollingBar);
                         
                         String SelectedDriveName = FoundDrive.getText().toString().substring(FoundDrive.getText().toString().length() -5);
-                        GetSMARTData(SelectedDriveName.replace(")", ""));
+                       
+                        try{
+                                GetSMARTData(SelectedDriveName.replace(")", ""));
+                          } catch (InterruptedException ex) {
+                                Logger.getLogger(ALG.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                         
+                        if(HardDriveReportWindow.getContentPane().getComponent(2) != null){
+                         HardDriveReportWindow.getContentPane().getComponent(2).setVisible(false);
+                        }else if(HardDriveReportWindow.getContentPane().getComponent(3) != null){
+                         HardDriveReportWindow.getContentPane().getComponent(3).setVisible(false);
+                        }else if(HardDriveReportWindow.getContentPane().getComponent(4) != null){
+                         HardDriveReportWindow.getContentPane().getComponent(4).setVisible(false);
+                        }
                         
-                        HardDriveReportWindow.getContentPane().getComponent(2).setVisible(false);
-                        HardDriveReportWindow.getContentPane().getComponent(3).setVisible(false);
-                        HardDriveReportWindow.getContentPane().getComponent(4).setVisible(false);
-                     
-                     
                         gbc.gridx=2;
                         gbc.gridy=1;
                         HardDriveReportContent.add(TableView,gbc);
@@ -436,27 +459,17 @@ public class ALG {
                         MaxWidth = 1000;
                         MaxHeight = 750;
                         HardDriveReportWindow.setSize(MaxWidth+=200, MaxHeight);
-                        }
-                    });
-                    
-                   
-                 
-                    
-                 
+
                 });
               
-                 break;
+               break;
         }
-            
-        
-           
+
         }catch (Exception ButtonsNotFound){
             
             Logger.getLogger(ALG.class.getName()).log(Level.SEVERE, null, ButtonsNotFound);
         }
-       
-         
-            
+ 
        return HardDriveReportWindow;
 }
 
@@ -574,35 +587,50 @@ public class ALG {
     
     
     //Functions
-    private static void FindDrives(){
+    private static void FindDrives() throws InterruptedException{
      
         var GetAvailableDrivesScript = ALG.class.getResource("/Scripts/GetAllAvailableDrives.sh");
-
+        
         try {
+            
+            //Make Script Executable
+            MakeScriptsExecutable(GetAvailableDrivesScript);
             //Stores a command
-            Inputs = new String[] {"/bin/bash", "-c", GetAvailableDrivesScript.toString(), "&& locate DriveOutputs.txt"};
+            Inputs = new String[] {"/bin/bash", "-c", Script.toString(), "&& locate DriveOutputs.txt"};
             //Excecutes a command
             //This programming statement was adapted from StackOverflow:
             //Link: https://stackoverflow.com/questions/15356405/how-to-run-a-command-at-terminal-from-java-program
             //Author: Rahul
             //Author Profile Link: https://stackoverflow.com/users/2024761/rahul
             Process GetDriveAttributes = new ProcessBuilder(Inputs).start();
+            
+            GetDriveAttributes.waitFor();
             //Stores output from Process execution.
             //This programming statenent was adapted from StackOverflow:
             //Link: https://stackoverflow.com/questions/5711084/java-runtime-getruntime-getting-output-from-executing-a-command-line-program
             //Author: Saptarsi Halder
             //Author Profile Link: https://stackoverflow.com/users/14101724/saptarsi-halder
-            var Outputs = GetDriveAttributes.getInputStream().transferTo(System.out);
+            ScriptOutputs = GetDriveAttributes.getInputStream().transferTo(System.out);
             
+            System.out.println(ScriptOutputs);
+
             GettingDriveOutputs = new File("DriveOutputs.txt");
             ReadingDriveOutputs = new Scanner(GettingDriveOutputs);
             
+            
             DriveNames = new Stack();
             while(ReadingDriveOutputs.hasNextLine()){
-                
-                DriveNames.push(ReadingDriveOutputs.nextLine());
+
+                   //System.out.println(ReadingDriveOutputs.nextLine());
+                   
+                   if(DriveNames.empty()){
+                   DriveNames.push(ReadingDriveOutputs.nextLine()); 
+                   }else{
+                    DriveNames.push(ReadingDriveOutputs.nextLine()); 
+                   }
+
+             }
        
-            }
             SimpleCounter = 0;
             AvailableDrive = new Stack<JButton>();
             DefaultName = new List();
@@ -613,7 +641,8 @@ public class ALG {
                 if(Drives.toString().contains("sda1") || 
                    Drives.toString().contains("sdc1") || 
                    Drives.toString().contains("sdd1") ||
-                   Drives.toString().contains("sde1")){
+                   Drives.toString().contains("sde1") ||
+                   Drives.toString().contains("sdb1")){
                     
                     DefaultName.add( Drives.toString().replaceAll("\\s", ""));
   
@@ -643,56 +672,41 @@ public class ALG {
            
             }
             
-            for(JButton Drive: AvailableDrive){
-                    
-                SimpleCounter++;
-                
-                gbc.gridx=2;
-                gbc.gridy=SimpleCounter;
-                    
-                HardDriveReportContent.add( Drive ,gbc);
-                
-                 
-                HardDriveReportWindow.setSize(MaxWidth, MaxHeight+50);
-                
-                
-            }
+           
             
         } catch (IOException DrivesCouldNotBeFoundSuccessfully) {
             Logger.getLogger(ALG.class.getName()).log(Level.SEVERE, null, DrivesCouldNotBeFoundSuccessfully);
         }
     }
     
-    private static void GetSMARTData(String SelectedDrive){
+    private static void GetSMARTData(String SelectedDrive) throws InterruptedException{
         
             var DriveAttributesScript = ALG.class.getResource("/Scripts/GetDriveAttributes.sh");
-            var MoveSMARTDataScript = ALG.class.getResource("/Scripts/MoveSmartData.sh");
-            var MoveCloserScript = ALG.class.getResource("/Scripts/MoveDataCloser.sh");
+        
           
             
-            ExecutableScript = new File(DriveAttributesScript.getPath());
-            ExecutableScript.setExecutable(true, false);
-            ExecutableScript.setReadable(true, false);
-            ExecutableScript.setWritable(true, false);
+            //Make Script Executable
+            MakeScriptsExecutable(DriveAttributesScript);
             
+
             try{
             //This programming statement was adapted from StackOverflow:
             //Link: https://stackoverflow.com/questions/18708087/how-to-execute-bash-command-with-sudo-privileges-in-java
             //Author: user5587563 
-            Inputs = new String[] {"/bin/bash","-c","echo", String.valueOf(PassCodeInput.getPassword()),"|" 
-                                           ,"sudo -S bash ./",  ExecutableScript.getPath(), String.valueOf(PassCodeInput.getPassword()),SelectedDrive};
+            Inputs = new String[] {"/bin/bash","-c",Script.toString(),SelectedDrive.substring(0,3),"&& locate SMART.txt"};
+            
             //This programming statement was adapted from StackOverflow:
             //Link: https://stackoverflow.com/questions/15356405/how-to-run-a-command-at-terminal-from-java-program
             //Author: Rahul
             //Author Profile Link: https://stackoverflow.com/users/2024761/rahul
             Process GetDriveAttributes = new ProcessBuilder(Inputs).start();
-            //Stores output from Process execution.
-            //This programming statenent was adapted from StackOverflow:
-            //Link: https://stackoverflow.com/questions/5711084/java-runtime-getruntime-getting-output-from-executing-a-command-line-program
-            //Author: Saptarsi Halder
-            //Author Profile Link: https://stackoverflow.com/users/14101724/saptarsi-halder
-            var Outputs = GetDriveAttributes.getInputStream().transferTo(System.out);
-
+            
+            GetDriveAttributes.waitFor();
+            
+            ScriptOutputs = GetDriveAttributes.getInputStream().transferTo(System.out);
+            
+            System.out.println(ScriptOutputs);
+//
             DriveData = new HashMap();
             GettingDriveOutputs  = new File("SMART.txt");
             ReadingDriveOutputs = new Scanner(GettingDriveOutputs);
@@ -703,8 +717,12 @@ public class ALG {
                     
                      if(ReadingDriveOutputs.nextLine().contains(Header)){
                          //For now the value is 0.
-                         DriveData.put(ReadingDriveOutputs.nextLine(),0);
-                         System.out.println(ReadingDriveOutputs.nextLine());
+                         if(DriveData.isEmpty()){
+                            DriveData.put(ReadingDriveOutputs.nextLine(),0);
+                         }else{
+                            DriveData.put(ReadingDriveOutputs.nextLine(),0);
+                         }
+
                      }
                      
                 

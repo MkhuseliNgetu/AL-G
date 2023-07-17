@@ -2,18 +2,17 @@
 
 #Check if the user is running the script with admin rights.
 CurrentUserID=$(id -u)
-if [[ "${CurrentUserID}" -ne 0 ]]
+if [[ "${CurrentUserID}" -eq 0 ]]
 then
-    echo 'This script must be run as root (su) to proceed'
+    echo 'This script must not be run as root (su) to proceed'
     exit 1
 fi
 
 #Get S.M.A.R.T data
-ChosenHDD="${2}"
-FindSMARTData=$(echo "${1}" | sudo -S smartctl -a /dev/${ChosenHDD} >> Holding.txt && cat Holding.txt | sed -n '57,82p' >> SMART.txt)
-MakeUsable=$(chmod 666 SMART.txt)
-CopyToHomeLocation=$(cp -p SMART.txt /home)
-RemoveSMARTDataFromCurrentLocation=$(rm Holding.txt && rm SMART.txt)
+ChosenHDD="${1}"
+FindSMARTData=$(sudo smartctl -a /dev/"${ChosenHDD}" | tee Holding.txt && cat Holding.txt | sed -n '57,82p' | tee SMART.txt)
+RemoveHoldingFromCurrentLocation=$(rm -rf Holding.txt)
+
 
 #Checking if the script has ran successfully
 if [[ "${?}" -eq 0 ]]

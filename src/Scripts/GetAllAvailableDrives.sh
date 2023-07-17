@@ -4,14 +4,12 @@
 CurrentUserID=$(id -u)
 if [[ "${CurrentUserID}" -eq 0 ]]
 then
-    echo 'This script should not be run with root (su). Please run the script as a not root user'
+    echo 'This script should not be run with root (su). Please run the script as a non root user'
     exit 1
 fi
 
 #Get Hard drives
 GetMyDrives=$(lsblk -o NAME,MOUNTPOINTS > DriveOutputs.txt)
-CopyToDesiredLocation=$(cp -p DriveOutputs.txt ~/Documents/GitHub/AL-G)
-RemoveDriveOutputsFromCurrentLocation=$(rm DriveOutputs.txt)
 
 #Checking if the script has ran successfully
 if [[ "${?}" -eq 0 ]]
