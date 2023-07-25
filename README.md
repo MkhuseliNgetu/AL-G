@@ -5,7 +5,7 @@ System Requirements
 
 Minimum\
 OS (Operating System): Linux\ 
-IDE/Coding Platform: Apache Netbeans 18\
+Coding Platform: Apache Netbeans 18\
 Storage: 20MB\
 RAM: 4GB\
 Misc. Software: smartctl (Install command : sudo <insert your package manager> install smartmontools)\
@@ -14,7 +14,7 @@ A functional keyboard and mouse.\
 
 Recommended\
 OS (Operating System): Linux (Fedora 38)\
-IDE/Coding Platform: Apache Netbeans 18\
+Coding Platform: Apache Netbeans 18\
 Storage: Greater than 20MB\
 RAM: 4GB\
 Misc. Software: smartctl (Install command : sudo <insert your package manager> install smartmontools)\
