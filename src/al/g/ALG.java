@@ -23,7 +23,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
+import java.util.Arrays;
 import java.util.Dictionary;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -86,9 +88,6 @@ public class ALG {
     private static File GettingDriveOutputs;
     private static Scanner ReadingDriveOutputs; 
     private static Stack DriveNames;
-    private static Map DriveData;
-    private static JPasswordField PassCodeInput;
-    private static JTextArea PassCodePrompt;
     private static Font DarkFont;
     private static JButton Submit;
     private static Container HardDriveReportContent;
@@ -99,9 +98,9 @@ public class ALG {
     //Hard Drive NAS Status Related
     private static JFrame NASStatus;
     private static Container NASStatusContent;
-    private static Dictionary HealthyDriveAttributes;
-    private static Dictionary UnHealthyDriveAttributes;
     private static JTextArea NasStatusVerdict;
+    private static String FinalVerdictConverted;
+    private static HashMap<String, String> HealthAttributes;
         
     
     private static Stack<JButton> AvailableDrive;
@@ -337,40 +336,26 @@ public class ALG {
         HardDriveReportWindow.setResizable(false);
         HardDriveReportWindow.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         HardDriveReportWindow.setLocationRelativeTo(null);
-        
-        
+
         TableHeaders = new String[]{"Raw_Read_Error_Rate",
             "Spin_Up_Time","Start_Stop_Count","Reallocated_Sector_Ct",
-            "Seek_Error_Rate", "Power_On_Hours","Spin_Retry_Count",
-            "Power_Cycle_Count", "End-to-End_Error", "Reported_Uncorrect",
-            "Command_Timeout", "High_Fly_Writes", "Airflow_Temperature_Cel",
-            "G-Sense_Error_Rate", "Power-Off_Retract_Count","Load_Cycle_Count",
-            "Temperature_Celsius", "Current_Pending_Sector", "Offline_Uncorrectable",
-            "UDMA_CRC_Error_Count", "Head_Flying_Hours", "Total_LBAs_Written",
+            "Seek_Error_Rate", "Power_On_Hours","Spin_Retry_Count","Calibration_Retry_Count",
+            "Power_Cycle_Count","G-Sense_Error_Rate","Power-Off_Retract_Count","Load_Cycle_Count",
+            "Temperature_Celsius","Reallocated_Event_Count","Current_Pending_Sector","Offline_Uncorrectable",
+            "UDMA_CRC_Error_Count","Multi_Zone_Error_Rate","Head_Flying_Hours","Total_LBAs_Written",
             "Total_LBAs_Read","Free_Fall_Sensor"};
         //Demo Data
-        TableData = new String[24];
-        for(int IT=0; IT < TableHeaders.length; IT++){
-            
-            TableData[IT] = "0";
-        }
-        
+        TableData = new String[22];
+
         ReportTemplate = new DefaultTableModel();
-        int NumberOfHeadersAvailable = 1;
-        for(String Header:TableHeaders){
-            
-            NumberOfHeadersAvailable++;
-            ReportTemplate.addColumn(Header);
-           
-        }
-        
-        ReportTemplate.insertRow(0, TableData);
+        ReportTemplate.setRowCount(0);
+        ReportTemplate.addColumn("S.M.A.R.T Attributes");
+        ReportTemplate.addColumn("Values");
         
         Report = new JTable(ReportTemplate);
         Report.setOpaque(true);
         Report.setBackground(Color.WHITE);
         Report.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
-        
         
         ReturnButton = new JButton("Return to Home");
         ReturnButton.setBackground(Color.WHITE);
@@ -397,7 +382,6 @@ public class ALG {
         }
 
         if(AvailableDrive.isEmpty()){
-            
             gbc.gridx=2;
             gbc.gridy=2;
             HardDriveReportContent.add(ReturnButton ,gbc);
@@ -416,55 +400,10 @@ public class ALG {
         });  
       
         try{
-            
-            for (JButton FoundDrive : AvailableDrive) {
-              
-                    FoundDrive.addActionListener((ActionEvent e) -> {
-    
+            for(int MS =0; MS < AvailableDrive.size(); MS++){
                 
-                        
-                    if(HardDriveReportWindow.getContentPane().getComponent(1) != null){
-                     HardDriveReportWindow.getContentPane().getComponent(1).setVisible(false);
-                    }
-
-                        TableView = new JScrollPane(Report);
-                        TableView.setPreferredSize(new Dimension(1100,450));
-                        ScrollingBar = new JScrollBar();
-                        TableView.add(ScrollingBar);
-                        
-                        String SelectedDriveName = FoundDrive.getText().toString().substring(FoundDrive.getText().toString().length() -5);
-                       
-                        try{
-                                GetSMARTData(SelectedDriveName.replace(")", ""));
-                          } catch (InterruptedException ex) {
-                                Logger.getLogger(ALG.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                        
-                        if(HardDriveReportWindow.getContentPane().getComponent(2) != null){
-                         HardDriveReportWindow.getContentPane().getComponent(2).setVisible(false);
-                        }else if(HardDriveReportWindow.getContentPane().getComponent(3) != null){
-                         HardDriveReportWindow.getContentPane().getComponent(3).setVisible(false);
-                        }else if(HardDriveReportWindow.getContentPane().getComponent(4) != null){
-                         HardDriveReportWindow.getContentPane().getComponent(4).setVisible(false);
-                        }
-                        
-                        gbc.gridx=2;
-                        gbc.gridy=1;
-                        HardDriveReportContent.add(TableView,gbc);
-                        
-                        gbc.gridx=2;
-                        gbc.gridy=2;
-                        HardDriveReportContent.add(ReturnButton, gbc);
-             
-                        MaxWidth = 1000;
-                        MaxHeight = 750;
-                        HardDriveReportWindow.setSize(MaxWidth+=200, MaxHeight);
-
-                });
-              
-               break;
-        }
-
+                 AddLogicToButton(AvailableDrive.get(MS));
+            }
         }catch (Exception ButtonsNotFound){
             
             Logger.getLogger(ALG.class.getName()).log(Level.SEVERE, null, ButtonsNotFound);
@@ -472,6 +411,8 @@ public class ALG {
  
        return HardDriveReportWindow;
 }
+    
+   
 
     public static JFrame GetDriveNASStatus(){
         
@@ -525,7 +466,6 @@ public class ALG {
         gbc.gridy=3;
         NASStatusContent.add(ProxMox,gbc);
         
-        
         gbc.gridx=2;
         gbc.gridy=4;
         NASStatusContent.add(ReturnButton ,gbc);
@@ -539,37 +479,92 @@ public class ALG {
         
         UNRAID.addActionListener((ActionEvent e) -> {
             
-            NASStatus.getContentPane().getComponent(4).setVisible(false);
-            
-            NASStatus.getContentPane().getComponent(3).setVisible(false);
-            
-            NASStatus.getContentPane().getComponent(2).setVisible(false);
-            
             NASStatus.getContentPane().getComponent(1).setVisible(false);
             
+            NASStatus.getContentPane().getComponent(2).setVisible(false);
+              
+            NASStatus.getContentPane().getComponent(3).setVisible(false);
+            
+            NASStatus.getContentPane().getComponent(4).setVisible(false);
+            
+            DetermineNASStatus();
+            NasStatusVerdict = new JTextArea();
+            NasStatusVerdict.setEditable(false);
+            NasStatusVerdict.setFont(new Font("Arial Black", Font.BOLD, 20));
+            NasStatusVerdict.append(FinalVerdictConverted);
+            
+            gbc.gridx=2;
+            gbc.gridy=0;
+            NASStatusContent.add(MainLogo,gbc);
+            
+            gbc.gridx=2;
+            gbc.gridy=1;
+            NASStatusContent.add(NasStatusVerdict,gbc);
+            
+            gbc.gridx=2;
+            gbc.gridy=2;
+            NASStatusContent.add(ReturnButton ,gbc);
             
         });  
         
         TrueNAS.addActionListener((ActionEvent e) -> {
-           
-            NASStatus.getContentPane().getComponent(4).setVisible(false);
-            
-            NASStatus.getContentPane().getComponent(3).setVisible(false);
-            
-            NASStatus.getContentPane().getComponent(2).setVisible(false);
             
             NASStatus.getContentPane().getComponent(1).setVisible(false);
+            
+            NASStatus.getContentPane().getComponent(2).setVisible(false);
+              
+            NASStatus.getContentPane().getComponent(3).setVisible(false);
+            
+            NASStatus.getContentPane().getComponent(4).setVisible(false);
+            
+            DetermineNASStatus();
+            NasStatusVerdict = new JTextArea();
+            NasStatusVerdict.setEditable(false);
+            NasStatusVerdict.setFont(new Font("Arial Black", Font.BOLD, 20));
+            NasStatusVerdict.append(FinalVerdictConverted);
+
+            gbc.gridx=2;
+            gbc.gridy=0;
+            NASStatusContent.add(MainLogo,gbc);
+        
+            gbc.gridx=2;
+            gbc.gridy=1;
+            NASStatusContent.add(NasStatusVerdict,gbc);
+            
+            gbc.gridx=2;
+            gbc.gridy=2;
+            NASStatusContent.add(ReturnButton ,gbc);
+           
         });  
          
         ProxMox.addActionListener((ActionEvent e) -> {
            
-            NASStatus.getContentPane().getComponent(4).setVisible(false);
-            
-            NASStatus.getContentPane().getComponent(3).setVisible(false);
+            NASStatus.getContentPane().getComponent(1).setVisible(false);
             
             NASStatus.getContentPane().getComponent(2).setVisible(false);
+              
+            NASStatus.getContentPane().getComponent(3).setVisible(false);
             
-            NASStatus.getContentPane().getComponent(1).setVisible(false);
+            NASStatus.getContentPane().getComponent(4).setVisible(false);
+           
+            DetermineNASStatus();
+            NasStatusVerdict = new JTextArea();
+            NasStatusVerdict.setEditable(false);
+            NasStatusVerdict.setFont(new Font("Arial Black", Font.BOLD, 20));
+            NasStatusVerdict.append(FinalVerdictConverted);
+            
+            gbc.gridx=2;
+            gbc.gridy=0;
+            NASStatusContent.add(MainLogo,gbc);
+            
+            gbc.gridx=2;
+            gbc.gridy=1;
+            NASStatusContent.add(NasStatusVerdict,gbc);
+            
+            gbc.gridx=2;
+            gbc.gridy=2;
+            NASStatusContent.add(ReturnButton ,gbc);
+            
              
         });  
         
@@ -632,14 +627,13 @@ public class ALG {
              }
        
             SimpleCounter = 0;
-            AvailableDrive = new Stack<JButton>();
+            AvailableDrive = new Stack<>();
             DefaultName = new List();
             DefaultMountPoints = new List();
             
             for(Object Drives: DriveNames){
                 
-                if(Drives.toString().contains("sda1") || 
-                   Drives.toString().contains("sdc1") || 
+                if(Drives.toString().contains("sdc1") || 
                    Drives.toString().contains("sdd1") ||
                    Drives.toString().contains("sde1") ||
                    Drives.toString().contains("sdb1")){
@@ -678,22 +672,20 @@ public class ALG {
             Logger.getLogger(ALG.class.getName()).log(Level.SEVERE, null, DrivesCouldNotBeFoundSuccessfully);
         }
     }
-    
     private static void GetSMARTData(String SelectedDrive) throws InterruptedException{
         
-            var DriveAttributesScript = ALG.class.getResource("/Scripts/GetDriveAttributes.sh");
-        
-          
-            
-            //Make Script Executable
-            MakeScriptsExecutable(DriveAttributesScript);
-            
+            //var DriveAttributesScript = ALG.class.getResource("/Scripts/GetDriveAttributes.sh");
+
 
             try{
+                
+            //Make Script Executable
+            //MakeScriptsExecutable(DriveAttributesScript);
+            
             //This programming statement was adapted from StackOverflow:
             //Link: https://stackoverflow.com/questions/18708087/how-to-execute-bash-command-with-sudo-privileges-in-java
             //Author: user5587563 
-            Inputs = new String[] {"/bin/bash","-c",Script.toString(),SelectedDrive.substring(0,3),"&& locate SMART.txt"};
+            Inputs = new String[] {"/bin/bash","-c","sudo smartctl -a /dev/"+SelectedDrive.substring(0,3)+" | tee Holding.txt && cat Holding.txt | sed -n '60,81p' | tee SMART.txt && locate SMART.txt"};
             
             //This programming statement was adapted from StackOverflow:
             //Link: https://stackoverflow.com/questions/15356405/how-to-run-a-command-at-terminal-from-java-program
@@ -705,61 +697,165 @@ public class ALG {
             
             ScriptOutputs = GetDriveAttributes.getInputStream().transferTo(System.out);
             
-            System.out.println(ScriptOutputs);
-//
-            DriveData = new HashMap();
+            //System.out.println(ScriptOutputs);
+          
             GettingDriveOutputs  = new File("SMART.txt");
             ReadingDriveOutputs = new Scanner(GettingDriveOutputs);
+            int Counter =0;
             
             while(ReadingDriveOutputs.hasNextLine()){
                 
-                for(String Header: TableHeaders){
-                    
-                     if(ReadingDriveOutputs.nextLine().contains(Header)){
-                         //For now the value is 0.
-                         if(DriveData.isEmpty()){
-                            DriveData.put(ReadingDriveOutputs.nextLine(),0);
-                         }else{
-                            DriveData.put(ReadingDriveOutputs.nextLine(),0);
-                         }
-
-                     }
-                     
-                
-                }
-               
+                String[] HoldingCell =ReadingDriveOutputs.nextLine().split(" ");
+                TableData[Counter++]=HoldingCell[HoldingCell.length -1];
             }
-
+        
+            for(int Attribute=0; Attribute < TableData.length;Attribute++){
+             ReportTemplate.addRow(new Object[]{TableHeaders[Attribute],TableData[Attribute]});
+            }
+            
             }catch(IOException SMARTAttributesCouldNotBeLoadedSuccessfully){
             
                 Logger.getLogger(ALG.class.getName()).log(Level.SEVERE, null, SMARTAttributesCouldNotBeLoadedSuccessfully);
             }
 
     }  
-    
-    private static void DetermineNASStatus(){
+    public static void AddLogicToButton(JButton HardDrive){
         
-        Dictionary HealthyDriveAttributes = new Hashtable();
+                  
+         HardDrive.addActionListener((ActionEvent e) -> {
+         HardDriveReportWindow.getContentPane().removeAll();
+          
+         String SelectedDriveName = HardDrive.getText().toString().substring( HardDrive.getText().toString().length() -5);
+                       
+         try{
+         GetSMARTData(SelectedDriveName.replace(")", ""));
+         } catch (InterruptedException ex) {
+         Logger.getLogger(ALG.class.getName()).log(Level.SEVERE, null, ex);
+         }
+         
+         DisplayTable();
+         
+         });
+
+    }
+    public static void DisplayTable(){
         
-        Dictionary UnHealthyDriveAttributes = new Hashtable();
+          gbc.gridx=2;
+          gbc.gridy=0;
+          HardDriveReportContent.add(MainLogo,gbc);
+
+          TableView = new JScrollPane(Report);
+          TableView.setPreferredSize(new Dimension(1100,390));
+          ScrollingBar = new JScrollBar();
+          TableView.add(ScrollingBar);
+          
+          gbc.gridx=2;
+          gbc.gridy=1;
+          HardDriveReportContent.add(TableView,gbc);
+                        
+          gbc.gridx=2;
+          gbc.gridy=2;
+          HardDriveReportContent.add(ReturnButton, gbc);
+             
+          MaxWidth = 1000;
+          MaxHeight = 750;
+          HardDriveReportWindow.setSize(MaxWidth+=200, MaxHeight);
+    }
+    private static String DetermineNASStatus(){
         
-        if(TableHeaders.length != 0){
+        HealthAttributes = new HashMap<String,String>();
+        FinalVerdictConverted = null;
+        if(TableData.length != 0){
             
-              for(String Headings: TableHeaders){
-                  //Using 0 as a placeholder - for now.
-                  HealthyDriveAttributes.put(Headings, 0);
-                  UnHealthyDriveAttributes.put(Headings, 0);
-              }
+          //Relocated_Sector_Ct Rules
+          // 0 = Good, Recommended For NAS
+          // <10 = Okay, Recommended For NAS
+          //> 10 = Bad, Not Recommended For NAS
+          if(Integer.parseInt(TableData[3]) == 0){
+              HealthAttributes.put("RelocatedSectorCountStatus", "Good");
+          }else if(Integer.parseInt(TableData[3]) >=1 && Integer.parseInt(TableData[3]) <=10){
+              HealthAttributes.put("RelocatedSectorCountStatus", "Okay");
+          }else if(Integer.parseInt(TableData[3]) >10){
+              HealthAttributes.put("RelocatedSectorCountStatus", "Bad");
+          }
+          //Current_Pending_Sector Rules
+          // 0 = Good, Recommended For NAS
+          // <10 = Okay, Recommended For NAS
+          //> 10 = Bad, Not Recommended For NAS
+          if(Integer.parseInt(TableData[14]) == 0){
+              HealthAttributes.put("CurrentPendingSectorStatus", "Good");
+          }else if(Integer.parseInt(TableData[14]) >=1 && Integer.parseInt(TableData[14]) <=10){
+              HealthAttributes.put("CurrentPendingSectorStatus", "Okay");
+          }else if(Integer.parseInt(TableData[14]) >10){
+              HealthAttributes.put("CurrentPendingSectorStatus", "Bad");
+          }
+          //Offline_Uncorrectable Rules
+          // 0 = Good, Recommended For NAS
+          // <10 = Okay, Recommended For NAS
+          //> 10 = Bad, Not Recommended For NAS
+          if(Integer.parseInt(TableData[15]) == 0){
+              HealthAttributes.put("OfflineUncorrectableStatus", "Good");
+          }else if(Integer.parseInt(TableData[15]) >=1 && Integer.parseInt(TableData[15]) <=10){
+              HealthAttributes.put("OfflineUncorrectableStatus", "Okay");
+          }else if(Integer.parseInt(TableData[15]) >10){
+              HealthAttributes.put("OfflineUncorrectableStatus", "Bad");
+          }
+          //UDMA_CRC_Error_Count Rules
+          // 0 = Good, Recommended For NAS
+          // <10 = Okay, Recommended For NAS
+          //> 10 = Bad, Not Recommended For NAS
+           if(Integer.parseInt(TableData[16]) == 0){
+              HealthAttributes.put("UDMACRCErrorCountStatus", "Good");
+          }else if(Integer.parseInt(TableData[16]) >=1 && Integer.parseInt(TableData[16]) <=10){
+              HealthAttributes.put("UDMACRCErrorCountStatus", "Okay");
+          }else if(Integer.parseInt(TableData[16]) >10){
+              HealthAttributes.put("UDMACRCErrorCountStatus", "Bad");
+          }
         }
         
+        int NumberOfGoodDriveStatuses = 0;
+        int NumberOfOKDriveStatuses = 0;
+        int NumberOfBadDriveStatuses = 0;
+        int FinalVerdict = 0;
+        
+        if(HealthAttributes.size() == 4){
+            
+            for(int Entry =0; Entry < HealthAttributes.size(); Entry++){
+                
+                if(HealthAttributes.containsValue("Good")){
+                    NumberOfGoodDriveStatuses++;
+                }else if(HealthAttributes.containsValue("Okay")){
+                    NumberOfOKDriveStatuses++;
+                }else if(HealthAttributes.containsValue("Bad")){
+                    NumberOfBadDriveStatuses++;
+                }
+            }
+            
+            FinalVerdict = (NumberOfGoodDriveStatuses + NumberOfOKDriveStatuses) - NumberOfBadDriveStatuses;
+            
+            switch(FinalVerdict){
+                
+                case 0:
+                  FinalVerdictConverted = "Bad"+"\n"+"(Not Recommended For NAS)";
+                    break;
+                case 1:
+                  FinalVerdictConverted = "Bad"+"\n"+"(Not Recommended For NAS)";
+                    break;
+                case 2:
+                  FinalVerdictConverted = "Okay"+"\n"+"(Recommended For NAS)";
+                    break;
+                case 3:
+                  FinalVerdictConverted = "Good"+"\n"+"(Recommended For NAS)";
+                    break;
+                case 4:
+                  FinalVerdictConverted = "Good"+"\n"+"(Recommended For NAS)";
+                    break;
+            }
+        }
+      
 
-//        for(int Attribute =0; Attribute < DriveData.size(); Attribute++){
-//            
-//            
-//           
-//        }
         
-        
+        return FinalVerdictConverted;
     }
         
     
