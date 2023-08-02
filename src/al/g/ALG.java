@@ -62,14 +62,7 @@ public class ALG {
     
     private static GridBagLayout gbl;
     private static GridBagConstraints gbc;
-      
-    private static JFrame SplashScreen;
-    private static String LogoLocation;
-    private static String LoadingLogoLocation;
-    private static ImageIcon Logo;
-    private static Container SplashScreenContent;
     private static JLabel MainLogo;
-    private static JLabel MainLoadingLogo;
     
     //Home Screen Related
     private static JFrame HomeWindow;
@@ -88,10 +81,7 @@ public class ALG {
     private static File GettingDriveOutputs;
     private static Scanner ReadingDriveOutputs; 
     private static Stack DriveNames;
-    private static Font DarkFont;
-    private static JButton Submit;
     private static Container HardDriveReportContent;
-    private static File ExecutableScript;
     private static JScrollPane TableView;
     private static JScrollBar ScrollingBar;
     
@@ -122,20 +112,17 @@ public class ALG {
     public static void main(String[] args) throws InterruptedException {
         
         StartUpCheck();
+        MainWindow();
       
     }
     //User Interfaces Startup and Layout
     private static void StartUpCheck() throws InterruptedException{
-           
-           
-           
+
         try {
            // TODO code application logic here
            //Get All Unlocked & Decrypted Drives
            FindDrives();
       
-
-          SplashScreen();
         } catch (InterruptedException ex) {
             Logger.getLogger(ALG.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -168,17 +155,9 @@ public class ALG {
         gbc.weighty=0.5;
     }
     //User Interfaces
-    public static JFrame SplashScreen() throws InterruptedException{
-        
-        WindowName = "AL-G";
-        MaxWidth = 500;
-        MaxHeight = 500;
-        
-        SplashScreen = new JFrame(WindowName);
-        SplashScreen.setSize(MaxWidth, MaxHeight);
-        SplashScreen.setResizable(false);
-        SplashScreen.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        SplashScreen.setLocationRelativeTo(null);
+  
+    
+    public static JFrame MainWindow(){
         
              
         MainLogo = new JLabel();
@@ -187,66 +166,6 @@ public class ALG {
         //Author(s): Depak Sharma, Andrew Thompson
         //Author Profile Link: https://stackoverflow.com/users/11289224/deepak-sharma, https://stackoverflow.com/users/418556/andrew-thompson
         MainLogo.setIcon( new ImageIcon(ALG.class.getResource("/Resources/Al-G SplashScreenImage V8.png")));
-        
-        MainLoadingLogo = new JLabel();
-        //This programming statement was adapted from StackOverflow:
-        //Link: https://stackoverflow.com/questions/55450014/class-path-resource-for-jlabel-imageicon
-        //Author(s): Depak Sharma, Andrew Thompson
-        //Author Profile Link: https://stackoverflow.com/users/11289224/deepak-sharma, https://stackoverflow.com/users/418556/andrew-thompson
-        MainLoadingLogo.setIcon(new ImageIcon(ALG.class.getResource("/Resources/Loading.gif")));
-        
-        SplashScreenContent = new Container();
-        
-        SetupLayout();
-        SplashScreenContent.setLayout(gbl);
-
-        gbc.gridx=1;
-        gbc.gridy=1;
-        SplashScreenContent.add(MainLogo,gbc);
-        
-        gbc.gridx=1;
-        gbc.gridy=2;
-        SplashScreenContent.add(MainLoadingLogo,gbc);
-        
-        SplashScreen.setContentPane(SplashScreenContent);
-        
-        SplashScreen.setBackground(Color.WHITE);
-        
-        try{
-            //This programming statement was adapted from CodeSpeedy:
-            //Link: https://www.codespeedy.com/how-to-change-the-color-of-title-bar-in-jframe-in-java/
-            //Author: Subhojeet Ghosh
-            //Author Profile Link: https://www.codespeedy.com/author/subhojeet_ghosh/
-            UIManager.put("JFrame.activeTitleBackground", Color.WHITE);
-            
-        }catch(Exception CannotSetColour){
-            Logger.getLogger(ALG.class.getName()).log(Level.SEVERE, null, CannotSetColour);
-        }
-        
-        SplashScreen.setVisible(true);
-       
-       /* MainLoadingLogo.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    
-                    
-                  
-                }
-
-            });*/
-        
-        if(System.currentTimeMillis() > 10000){
-            
-         SplashScreen.setVisible(false);
-         SplashScreen.dispose();
-         MainWindow();
-        }
-         
-         
-        return SplashScreen;
-    }
-    
-    public static JFrame MainWindow(){
         
         
         WindowName = "AL-G: Home";
@@ -263,7 +182,7 @@ public class ALG {
         //Link: https://stackoverflow.com/questions/55450014/class-path-resource-for-jlabel-imageicon
         //Author(s): Depak Sharma, Andrew Thompson
         //Author Profile Link: https://stackoverflow.com/users/11289224/deepak-sharma, https://stackoverflow.com/users/418556/andrew-thompson
-        GetHardDriveReport = new JButton(new ImageIcon(ALG.class.getResource("/Resources/Hard Drive Report ImageButton V2.png")));
+        GetHardDriveReport = new JButton("Get Hard Drive Report");
         GetHardDriveReport.setBackground(Color.WHITE);
         GetHardDriveReport.setOpaque(true);
         
@@ -271,7 +190,7 @@ public class ALG {
         //Link: https://stackoverflow.com/questions/55450014/class-path-resource-for-jlabel-imageicon
         //Author(s): Depak Sharma, Andrew Thompson
         //Author Profile Link: https://stackoverflow.com/users/11289224/deepak-sharma, https://stackoverflow.com/users/418556/andrew-thompson
-        CheckIfHardDriveNASStatus = new JButton(new ImageIcon(ALG.class.getResource("/Resources/Hard Drive Status ImageButton V2.png")));
+        CheckIfHardDriveNASStatus = new JButton("Get Hard Drive Status");
         CheckIfHardDriveNASStatus.setBackground(Color.WHITE);
         CheckIfHardDriveNASStatus.setOpaque(true);
         
@@ -279,8 +198,7 @@ public class ALG {
         
         SetupLayout();
         HomeScreenContent.setLayout(gbl);
-        
-        
+
         gbc.gridx=0;
         gbc.gridy=0;
         HomeScreenContent.add(MainLogo,gbc);
@@ -292,8 +210,7 @@ public class ALG {
         gbc.gridx=0;
         gbc.gridy=2;
         HomeScreenContent.add(CheckIfHardDriveNASStatus,gbc);
-        
-        
+
         HomeWindow.setContentPane(HomeScreenContent);
         
         HomeWindow.setBackground(Color.WHITE);
@@ -310,9 +227,7 @@ public class ALG {
                 Logger.getLogger(ALG.class.getName()).log(Level.SEVERE, null, ex);
             }
         });  
-        
-         
-        
+
         CheckIfHardDriveNASStatus.addActionListener((ActionEvent e) -> {
             HomeWindow.setVisible(false);  
             HomeWindow.dispose();
@@ -357,7 +272,7 @@ public class ALG {
         Report.setBackground(Color.WHITE);
         Report.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         
-        ReturnButton = new JButton("Return to Home");
+        ReturnButton = new JButton("Return to Home Screen");
         ReturnButton.setBackground(Color.WHITE);
         ReturnButton.setOpaque(true);
         
@@ -438,7 +353,7 @@ public class ALG {
         ProxMox.setBackground(Color.WHITE);
         ProxMox.setOpaque(true);
         
-        ReturnButton = new JButton("Return to Home");
+        ReturnButton = new JButton("Return to Home Screen");
         ReturnButton.setBackground(Color.WHITE);
         ReturnButton.setOpaque(true);
         
@@ -485,7 +400,6 @@ public class ALG {
               
             NASStatus.getContentPane().getComponent(3).setVisible(false);
             
-            NASStatus.getContentPane().getComponent(4).setVisible(false);
             
             DetermineNASStatus();
             NasStatusVerdict = new JTextArea();
@@ -515,7 +429,6 @@ public class ALG {
               
             NASStatus.getContentPane().getComponent(3).setVisible(false);
             
-            NASStatus.getContentPane().getComponent(4).setVisible(false);
             
             DetermineNASStatus();
             NasStatusVerdict = new JTextArea();
@@ -544,8 +457,6 @@ public class ALG {
             NASStatus.getContentPane().getComponent(2).setVisible(false);
               
             NASStatus.getContentPane().getComponent(3).setVisible(false);
-            
-            NASStatus.getContentPane().getComponent(4).setVisible(false);
            
             DetermineNASStatus();
             NasStatusVerdict = new JTextArea();
@@ -719,7 +630,7 @@ public class ALG {
             }
 
     }  
-    public static void AddLogicToButton(JButton HardDrive){
+    private static void AddLogicToButton(JButton HardDrive){
         
                   
          HardDrive.addActionListener((ActionEvent e) -> {
@@ -738,7 +649,7 @@ public class ALG {
          });
 
     }
-    public static void DisplayTable(){
+    private static void DisplayTable(){
         
           gbc.gridx=2;
           gbc.gridy=0;
